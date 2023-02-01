@@ -9,18 +9,26 @@ Modified by @riraosan.github.io for ATOM Lite.
 #include <Arduino.h>
 #include <WiFi.h>
 #include <time.h>
-#include "Connect.hpp"
 #ifndef IMAGE_FROM_SD
 #include "image.h"
 #endif
-
-#define NOT_USEATOM
-
+#include <Button2.h>
 #include <M5GFX.h>
 #include <LGFX_8BIT_CVBS.h>
-static LGFX_8BIT_CVBS display;
 
-// #define M5Canvas LGFX_Sprite
+static LGFX_8BIT_CVBS display;
+static Button2        button;
+
+#define TFCARD_CS_PIN 4
+#define LGFX          LGFX_8BIT_CVBS
+#define LGFX_ONLY
+#define USE_DISPLAY
+#define SDU_APP_NAME "Nixie Tube NTP Clock"
+#define SDU_APP_PATH "/00_nixie_tube_ntp_clock.bin"
+
+#include <M5StackUpdater.h>
+
+#define NOT_USEATOM
 
 static M5Canvas     sprites[2];
 static int_fast16_t sprite_height;
@@ -28,7 +36,6 @@ static std::int32_t display_width;
 static std::int32_t display_height;
 
 // Wifi 関連定義
-Connect     _wifi;
 const char* ntpServer          = "ntp.nict.jp";
 const long  gmtOffset_sec      = 9 * 3600;
 const int   daylightOffset_sec = 0;
@@ -43,7 +50,7 @@ bool autoNtp(void) {
   display.setCursor(5, 10);
   display.println("Connecting...");
 
-  _wifi.begin("", "");  // TODO ssid, password...
+  WiFi.begin("ST-790-1-HEMS24", "0123456789");
 
   display.println("");
   display.print(" ");
@@ -107,8 +114,6 @@ void PutNum(M5Canvas* sprite, uint16_t x, uint16_t y, uint16_t x_offset, uint8_t
 }
 
 void setupSprite(void) {
-  display.begin();
-
   display_width  = display.width();
   display_height = display.height();
 
@@ -135,7 +140,90 @@ void setupSprite(void) {
   display.startWrite();
 }
 
+bool bA = false;
+bool bB = false;
+bool bC = false;
+
+void handler(Button2& btn) {
+  switch (btn.getType()) {
+    case clickType::single_click:
+      Serial.print("single ");
+      bB = true;
+      break;
+    case clickType::double_click:
+      Serial.print("double ");
+      bC = true;
+      break;
+    case clickType::triple_click:
+      Serial.print("triple ");
+      break;
+    case clickType::long_click:
+      Serial.print("long ");
+      bA = true;
+      break;
+    case clickType::empty:
+      break;
+    default:
+      break;
+  }
+
+  Serial.print("click");
+  Serial.print(" (");
+  Serial.print(btn.getNumberOfClicks());
+  Serial.println(")");
+}
+
+bool buttonAPressed(void) {
+  bool temp = bA;
+  bA        = false;
+
+  return temp;
+}
+
+bool buttonBPressed(void) {
+  bool temp = bB;
+  bB        = false;
+
+  return temp;
+}
+
+bool buttonCPressed(void) {
+  bool temp = bC;
+  bC        = false;
+
+  return temp;
+}
+
+void ButtonUpdate() {
+  button.loop();
+}
+
+void setupButton(void) {
+  // G39 button
+  button.setClickHandler(handler);
+  button.setDoubleClickHandler(handler);
+  button.setTripleClickHandler(handler);
+  button.setLongClickHandler(handler);
+  button.begin(39);
+
+  SDUCfg.setSDUBtnA(&buttonAPressed);
+  SDUCfg.setSDUBtnB(&buttonBPressed);
+  SDUCfg.setSDUBtnC(&buttonCPressed);
+  SDUCfg.setSDUBtnPoller(&ButtonUpdate);
+}
+
 void setup() {
+  display.begin();
+
+  setupButton();
+  setSDUGfx(&display);
+  checkSDUpdater(
+      SD,            // filesystem (default=SD)
+      MENU_BIN,      // path to binary (default=/menu.bin, empty string=rollback only)
+      10000,         // wait delay, (default=0, will be forced to 2000 upon ESP.restart() )
+      TFCARD_CS_PIN  // (usually default=4 but your mileage may vary)
+  );
+
   setupSprite();
 
   // 時刻取得に失敗した場合は、動作停止
@@ -182,5 +270,4 @@ void loop() {
     delay(100);  // 0.1秒ウェイト
   }
   display.display();
-  _wifi.update();
 }
