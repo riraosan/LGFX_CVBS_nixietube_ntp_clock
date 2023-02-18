@@ -9,12 +9,10 @@ Modified by @riraosan.github.io for ATOM Lite.
 #include <Arduino.h>
 #include <WiFi.h>
 #include <time.h>
-#ifndef IMAGE_FROM_SD
-#include "image.h"
-#endif
 #include <Button2.h>
 #include <M5GFX.h>
 #include <LGFX_8BIT_CVBS.h>
+#include <image.h>
 
 static LGFX_8BIT_CVBS display;
 static Button2        button;
@@ -50,7 +48,7 @@ bool autoNtp(void) {
   display.setCursor(5, 10);
   display.println("Connecting...");
 
-  WiFi.begin("", "");
+  WiFi.begin("your_ssid", "your_password");
 
   display.println("");
   display.print(" ");
@@ -77,13 +75,6 @@ bool autoNtp(void) {
   return true;  // 時刻取得成功でリターン
 }
 
-// イメージデータ関連
-#ifdef IMAGE_FROM_SD  // SDからイメージデータを読み込む場合
-// SDカード上のファイル名を定義
-const char* image_data[17] = {"/0.jpg", "/1.jpg", "/2.jpg", "/3.jpg", "/4.jpg",
-                              "/5.jpg", "/6.jpg", "/7.jpg", "/8.jpg", "/9.jpg",
-                              "/sun.jpg", "/mon.jpg", "/tue.jpg", "/wed.jpg", "/thu.jpg", "/fri.jpg", "/sat.jpg"};
-#else  // image.hでインクルードしたイメージデータを使用する場合
 // 各イメージデータの配列名を定義
 const unsigned char* image_data[17] = {image0, image1, image2, image3, image4,
                                        image5, image6, image7, image8, image9,
@@ -92,15 +83,10 @@ const unsigned char* image_data[17] = {image0, image1, image2, image3, image4,
 const uint32_t image_size[17] = {sizeof image0, sizeof image1, sizeof image2, sizeof image3, sizeof image4,
                                  sizeof image5, sizeof image6, sizeof image7, sizeof image8, sizeof image9,
                                  sizeof sun, sizeof mon, sizeof tue, sizeof wed, sizeof thu, sizeof fri, sizeof sat};
-#endif
 
 // x, yの位置にnumberの数字または曜日を表示
 void PutJpg(M5Canvas* sprite, uint16_t x, uint16_t y, uint16_t number) {
-#ifdef IMAGE_FROM_SD
-  sprite->drawJpgFile(SD, image_data[number], x, y);
-#else
   sprite->drawJpg(image_data[number], image_size[number], x, y);
-#endif
 }
 
 // x, yの位置からnumberの数値をdigit桁で表示。文字間隔はx_offset
@@ -255,7 +241,7 @@ void loop() {
     PutJpg(&sprites[0], 216, 63, timeinfo.tm_wday + 10);     // 曜日の表示
 
     display.setPivot((display_width >> 1) - 7, (sprite_height >> 1) - 7);
-    sprites[0].pushRotateZoomWithAA(&display, 0, 1.0, 1.0);
+    sprites[0].pushRotateZoomWithAA(&display, 0, 0.85, 0.85);
 
     // スプライト下
     sprites[1].setCursor(3, 16);
@@ -265,7 +251,7 @@ void loop() {
     PutNum(&sprites[1], 216, 36, 52, 2, timeinfo.tm_sec);  // 秒の表示
 
     display.setPivot((display_width >> 1) - 7, sprite_height + (sprite_height >> 1));
-    sprites[1].pushRotateZoomWithAA(&display, 0, 1.0, 1.0);
+    sprites[1].pushRotateZoomWithAA(&display, 0, 0.85, 0.85);
 
     delay(100);  // 0.1秒ウェイト
   }

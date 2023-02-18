@@ -12,11 +12,11 @@ public:
       auto cfg = _panel_instance.config();  // Gets the structure for display panel settings
 
       // output resolution settings
-      cfg.memory_width  = 360;  // Output Resolution Width
+      cfg.memory_width  = 320;  // Output Resolution Width
       cfg.memory_height = 240;  // Output resolution Height
 
       // the actual resolution to be used settings
-      cfg.panel_width  = 360 - 8;   // Actual width   (Set a value equal to or smaller than memory_width)
+      cfg.panel_width  = 320 - 8;   // Actual width   (Set a value equal to or smaller than memory_width)
       cfg.panel_height = 240 - 16;  // Actual height  (Set a value equal to or smaller than memory_height)
 
       // the amount of display position offset settings
@@ -38,7 +38,7 @@ public:
       cfg.signal_type = cfg.signal_type_t::NTSC_J;
 
       // GPIO number of output destination settings
-      cfg.pin_dac = 25;  // For using DAC, you can choose only 25 or 26
+      cfg.pin_dac = 26;  // For using DAC, you can choose only 25 or 26
 
       // PSRAM memory allocation settings
       cfg.use_psram = 0;  // 0=PSRAM not used / 1=Half PSRAM and half SRAM / 2=All using PSRAM
