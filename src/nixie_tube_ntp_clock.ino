@@ -50,7 +50,7 @@ bool autoNtp(void) {
   display.setCursor(5, 10);
   display.println("Connecting...");
 
-  WiFi.begin("ST-790-1-HEMS24", "0123456789");
+  WiFi.begin("", "");
 
   display.println("");
   display.print(" ");
