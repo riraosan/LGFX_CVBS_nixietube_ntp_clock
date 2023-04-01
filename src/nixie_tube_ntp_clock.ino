@@ -15,7 +15,9 @@ Modified by @riraosan.github.io for ATOM Lite.
 #include <image.h>
 
 static LGFX_8BIT_CVBS display;
-static Button2        button;
+
+#define BUTTON_GPIO_NUM 16
+static Button2 button;
 
 #define TFCARD_CS_PIN 4
 #define LGFX          LGFX_8BIT_CVBS
@@ -185,12 +187,11 @@ void ButtonUpdate() {
 }
 
 void setupButton(void) {
-  // G39 button
   button.setClickHandler(handler);
   button.setDoubleClickHandler(handler);
   button.setTripleClickHandler(handler);
   button.setLongClickHandler(handler);
-  button.begin(39);
+  button.begin(BUTTON_GPIO_NUM);
 
   SDUCfg.setSDUBtnA(&buttonAPressed);
   SDUCfg.setSDUBtnB(&buttonBPressed);
