@@ -207,7 +207,7 @@ void setup() {
   checkSDUpdater(
       SD,            // filesystem (default=SD)
       MENU_BIN,      // path to binary (default=/menu.bin, empty string=rollback only)
-      10000,         // wait delay, (default=0, will be forced to 2000 upon ESP.restart() )
+      2000,          // wait delay, (default=0, will be forced to 2000 upon ESP.restart() )
       TFCARD_CS_PIN  // (usually default=4 but your mileage may vary)
   );
 
@@ -223,6 +223,15 @@ void setup() {
 
 void loop() {
   getLocalTime(&timeinfo);
+
+  ButtonUpdate();
+
+  if (buttonAPressed()) {
+    display.fillScreen(TFT_BLACK);
+
+    updateFromFS(SD);
+    ESP.restart();
+  }
 
   // 毎日午前12時に時刻取得
   if ((timeinfo.tm_hour == 12) && (timeinfo.tm_min == 0) && (timeinfo.tm_sec == 0)) {
